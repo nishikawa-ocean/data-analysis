@@ -10,12 +10,11 @@ def create_snapshots(x,delay):
 
     return X[:,:-1], X[:,1:]
 
-class windowedDMD:
+class DMD:
 
     """
-
-    二次元データ(空間×時間)に対する動的モード分解(DMD)による
-    振動数特性(変動の時間スケール)に応じたデータの再構成
+    
+    動的モード分解の実行
 
     """
 
@@ -24,13 +23,10 @@ class windowedDMD:
         self.dt   = dt
         self.rank = rank
 
-        self.data         = None
-        self.dmd_features = None
-        self.features     = None
-        self.labels       = None
-
-    def set_data(self,X):
-        self.X = X
+        self.Phi = None
+        self.eigvals = None
+        self.omega = None
+        self.b = None
 
     def perform_dmd(self,Xw):
 
@@ -76,10 +72,44 @@ class windowedDMD:
         
         # dynamics = np.array([b*eigvals**i for i in range(X1.shape[1])]).T
         # X_dmd    = (Phi @ dynamics).real
+
+        self.Phi = Phi
+        self.eigvals = eigvals
+        self.omega = omega
+        self.b = b
         
         return Phi,eigvals,omega,b
-    
-    def perform_windowed_dmd(self,window,overlap):
+
+
+    def reconstruct_basic(self,num_steps):
+
+        """
+        
+        モードの時間発展の重ね合わせによる時系列の再構成
+        
+        """
+        
+        dynamics = np.array([self.b * self.eigvals**i for i in range(num_steps)]).T
+        X_dmd = (self.Phi @ dynamics).real
+        return X_dmd
+
+class windowedDMD(DMD):
+    """
+
+    二次元データ(空間×時間)に対する動的モード分解(DMD)による
+    振動数特性(変動の時間スケール)に応じたデータの再構成
+
+    """    
+
+    def __init__(self, dt, rank):
+        super().__init__(dt, rank)
+
+        self.data         = None
+        self.dmd_results  = None
+        self.features     = None
+        self.labels       = None
+
+    def perform_windowed_dmd(self,X,window,overlap):
         
         """
         各窓に対してDMDを実行
@@ -104,7 +134,7 @@ class windowedDMD:
 
         """
 
-        X  = self.X
+        self.X = X
         dmd_results = []
         Nb = int(X.shape[1]/(window-overlap))
         X = X - np.mean(X,axis=1,keepdims=True)
@@ -279,8 +309,7 @@ class windowedDMD:
         self.reconstructed : クラスター番号順に再構成した時系列を並べたもの
         
         """
-        self.set_data(X)
-        self.perform_windowed_dmd(window,overlap)
+        self.perform_windowed_dmd(X,window,overlap)
         self.make_frequency_features()
         self.cluster_freq(n_clusters)
         self.reconstructed = {}
