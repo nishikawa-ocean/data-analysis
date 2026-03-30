@@ -1,4 +1,8 @@
-# Dynamic mode decomposition
+"""
+
+Dynamic mode decomposition(DMD)
+
+"""
 import numpy as np
 from scipy.linalg import svd,eig
 from sklearn.cluster import KMeans
@@ -55,6 +59,7 @@ class DMD:
         X2 = Xw[:,1:]
         
         U,S,Vh = svd(X1,full_matrices=False)  # U = U, S = Sigma, Vh = V^T in CD2025 # rank truncation r (tuning parameter?)
+        self.S = S
         # print("energy ratio:",np.sum(S[:r]**2)/np.sum(S**2))
 
         U_r,S_r,V_r = U[:,:r], np.diag(S[:r]), Vh[:r,:] 
