@@ -179,7 +179,7 @@ def cwt(tm, dt, target, wavelet, dj=0.25):
     pi = np.pi
 
     s = s0 * 2.0**(dj * np.arange(0, J + 1, 1))
-    x = np.zeros(n_cwt) 
+    x = np.zeros(n_cwt,dtype = np.complex128) 
 
     # 2のべき乗長にゼロパディング
     x[0:len(target)] = target[0:len(target)] - target.mean() 

@@ -67,7 +67,7 @@ class DMD:
         A_tilde = U_r.T @ X2 @ V_r.T @ np.linalg.inv(S_r) #(6) in CD2025
         
         eigvals, W = eig(A_tilde)
-        eigvals = eigvals[np.abs(eigvals)>1.e-12]
+        # eigvals = eigvals[np.abs(eigvals)>1.e-12]
         Phi = X2 @ V_r.T @ np.linalg.inv(S_r) @ W # (7) in CD2025
         omega = np.log(eigvals) / dt #/ (2j*np.pi) # (10) in CD2025
         
@@ -218,7 +218,7 @@ class windowedDMD(DMD):
         """
 
         dmd_results = self.dmd_results
-        self.omega[self.omega == 0] = 1.e-9
+        # self.omega[self.omega == 0] = 1.e-9
         # log_features = np.log10(self.omega)
         kmeans = KMeans(n_clusters=n_clusters,random_state=0)
         # labels = kmeans.fit_predict(log_features.reshape(-1,1))
