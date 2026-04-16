@@ -147,6 +147,44 @@ class DOG:
         sw = s * freq
         return const * (sw**self.m) * np.exp(-(sw**2) / 2.0)
 
+class GMW:
+    """ Generalized Morse Wavelet """
+    def __init__(self, gamma=3.0, beta=20.0):
+        self.gamma = gamma
+        self.beta = beta
+
+    def get_s_to_f(self):
+        """
+        スケールを振動数に変換
+        """
+        # フーリエ空間におけるウェーブレット関数のピーク周波数から変換係数を算出
+        omega_peak = (self.beta / self.gamma)**(1.0 / self.gamma)
+
+        self.omega_peak = omega_peak
+
+        return omega_peak / (2.0 * np.pi)
+
+    def get_coi_factor(self):
+        """
+        スケールからCOIを計算するための係数
+        """
+        return np.sqrt(2.0 * self.gamma * self.beta) / self.omega_peak
+
+    def psi_ft(self, s, freq):
+        """
+        フーリエ空間でのウェーブレット関数
+        """
+        Hev = freq > 0.0
+        Psi_0 = np.zeros_like(freq, dtype=float)
+        
+        sw = s * freq[Hev]
+        
+        # エネルギー正規化のための定数計算
+        gamma_arg = (2.0 * self.beta + 1.0) / self.gamma
+        const = np.sqrt((2.0 * self.gamma * (2.0**gamma_arg)) / math.gamma(gamma_arg))
+        
+        Psi_0[Hev] = const * (sw**self.beta) * np.exp(-(sw**self.gamma))
+        return Psi_0
 
 def cwt(tm, dt, target, wavelet, dj=0.25):
     
@@ -209,5 +247,6 @@ def cwt(tm, dt, target, wavelet, dj=0.25):
     COI[1:len(tm)//2] = coi_factor * s_to_f / tm[1:len(tm)//2]
     COI[len(tm)//2:-1] = coi_factor * s_to_f / (tm[-1] - tm[len(tm)//2:-1])
     COI[-1] = 0
+
 
     return freq_cwt, cwtu, COI
